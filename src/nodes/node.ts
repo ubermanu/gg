@@ -49,6 +49,12 @@ export class Node {
     }
   }
 
+  free() {
+    this.tree_exited.emit()
+    this.children.forEach((child) => child.free())
+    this.pixiContainer.destroy({ children: true })
+  }
+
   // TODO: Split by "/" and query subchildren
   $(name: string): Node | undefined {
     return this.children.find((c) => c.name === name)

@@ -46,7 +46,8 @@ export function createNodeHTMLElement(tagName: string, defaultGameClass: typeof 
     }
 
     disconnectedCallback() {
-      this.gameObject?.tree_exited.emit()
+      this.gameObject?.free()
+      this.gameObject = undefined
     }
 
     /**
