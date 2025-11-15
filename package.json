@@ -3,7 +3,7 @@
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
-    "format": "biome"
+    "format": "biome format --write ./src ./playground/src"
   },
   "biome": "@ubermanu/biome-config",
   "devDependencies": {

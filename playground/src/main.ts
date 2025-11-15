@@ -1,2 +1,2 @@
-import "./style.css";
-import "../../src";
+import './style.css'
+import '../../src'
