@@ -1,0 +1,20 @@
+{
+  "name": "@ubermanu/gg",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "format": "biome"
+  },
+  "biome": "@ubermanu/biome-config",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@ubermanu/biome-config": "^0.2.0",
+    "biome": "^0.3.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "pixi.js": "^8.14.0"
+  }
+}
