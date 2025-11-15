@@ -1,16 +1,16 @@
-import { Node, type NodeProps } from './nodes/node'
-import { signal, type Signal } from './signal'
+import { deferred, type DeferredPromise } from './deferred'
+import { Node, type NodeProps } from './node'
 
 export interface GGElement extends HTMLElement {
   gameObject?: Node
-  initialized: Signal
+  initialized: DeferredPromise
 }
 
 export function createNodeHTMLElement(tagName: string, defaultGameClass: typeof Node) {
   return class extends HTMLElement implements GGElement {
     gameObject?: Node
     tagName = tagName
-    initialized = signal<void>()
+    initialized = deferred()
 
     private parseAttributes() {
       const props: NodeProps = {}
@@ -30,19 +30,19 @@ export function createNodeHTMLElement(tagName: string, defaultGameClass: typeof 
       const GameClass = (await this.loadScript()) ?? defaultGameClass
       this.gameObject = new GameClass(props)
 
-      // Attach to parent
-      const parentElement = this.parentElement as GGElement | null
-      if (parentElement?.gameObject) {
-        parentElement.gameObject.addChild(this.gameObject)
-      }
-
-      // Lifecycle
       await this.gameObject._init?.()
-      await this.waitForChildren()
+
+      const childElements = Array.from(this.children).filter(
+        (child): child is GGElement => child instanceof HTMLElement && 'gameObject' in child,
+      )
+
+      await Promise.all(childElements.map((child) => child.initialized))
+      childElements.forEach((child) => this.gameObject.addChild(child.gameObject))
+
       await this.gameObject._ready?.()
 
-      this.initialized.emit()
       this.gameObject.ready.emit()
+      this.initialized.resolve()
     }
 
     disconnectedCallback() {
@@ -59,17 +59,6 @@ export function createNodeHTMLElement(tagName: string, defaultGameClass: typeof 
 
       const module: { default?: typeof Node } = await import(/* @vite-ignore */ src)
       return module.default
-    }
-
-    /**
-     * Wait until all the children are ready.
-     */
-    async waitForChildren() {
-      const children = Array.from(this.children).filter(
-        (child): child is GGElement => child instanceof HTMLElement && 'gameObject' in child,
-      )
-
-      await Promise.all(children.map((child) => child.initialized))
     }
   }
 }

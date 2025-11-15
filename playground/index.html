@@ -7,10 +7,12 @@
     <title>playground</title>
   </head>
   <body>
-    <gg-scene>
+    <gg-world>
       <gg-sprite position="1,33" texture="/vite.svg"></gg-sprite>
-      <gg-sprite texture="/vite.svg" script="/src/player.ts"></gg-sprite>
-    </gg-scene>
+      <gg-sprite texture="/vite.svg" script="/src/player.ts">
+        <gg-timer name="Timer1" autostart="true"></gg-timer>
+      </gg-sprite>
+    </gg-world>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

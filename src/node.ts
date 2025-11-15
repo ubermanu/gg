@@ -1,6 +1,7 @@
 import { Container, Point } from 'pixi.js'
-import { signal } from '../signal'
+import { signal } from './signal'
 import type { MaybePromise } from 'bun'
+import { World } from './world'
 
 export interface NodeProps {
   [key: string]: string | undefined
@@ -8,21 +9,16 @@ export interface NodeProps {
 
 export class Node {
   name
-  protected pixiContainer
+  pixiContainer = new Container()
   children: Node[] = []
   parent: Node | null = null
 
-  ready
-  tree_entered
-  tree_exited
+  ready = signal()
+  treeEntered = signal()
+  treeExited = signal()
 
   constructor(props: NodeProps) {
     this.name = props.name ?? ''
-    this.pixiContainer = new Container()
-    this.ready = signal()
-    this.tree_entered = signal()
-    this.tree_exited = signal()
-    this.children = []
 
     if (props['position']) {
       const [x, y] = props['position']?.split(',')
@@ -49,15 +45,39 @@ export class Node {
     }
   }
 
-  free() {
-    this.tree_exited.emit()
+  /**
+   * Remove the node from the world.
+   */
+  free(): void {
+    this.treeExited.emit()
     this.children.forEach((child) => child.free())
     this.pixiContainer.destroy({ children: true })
   }
 
+  /**
+   * Mark the node for deletion.
+   */
+  queueFree(): void {
+    this.world?.freeQueue.add(this)
+  }
+
+  /**
+   * Get the current world of the node.
+   */
+  get world(): World | null {
+    let current = this.parent
+    while (current) {
+      if (current instanceof World) {
+        return current
+      }
+      current = current.parent
+    }
+    return null
+  }
+
   // TODO: Split by "/" and query subchildren
-  $(name: string): Node | undefined {
-    return this.children.find((c) => c.name === name)
+  $<T extends Node>(name: string): T | undefined {
+    return this.children.find((c): c is T => c.name === name)
   }
 
   get position() {
